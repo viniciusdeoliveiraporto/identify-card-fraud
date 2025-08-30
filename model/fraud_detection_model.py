@@ -7,10 +7,14 @@ from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
 
+import os
+import joblib
+
 class FraudDetectionModel:
     def __init__(self, model_dir: str = "saved_model"):
-        self.model_dir = model_dir 
-        # os.makedirs(self.model_dir, exist_ok=True) Criar o diretorio se não existir de acordo com o GPT 
+        self.model_dir = model_dir
+        # Garante que o diretório exista
+        os.makedirs(self.model_dir, exist_ok=True)
         
         # Artefatos que serão criados em train() ou load() 
         self.autoencoder = None 
@@ -129,8 +133,43 @@ class FraudDetectionModel:
         pass
 
     def save(self):
-        pass
+        """Salva o modelo e artefatos em disco"""
+        if self.autoencoder is None:
+            raise RuntimeError("Nenhum modelo treinado para salvar.")
+
+        # Salva modelo Keras
+        model_path = os.path.join(self.model_dir, "autoencoder.keras")
+        self.autoencoder.save(model_path)
+
+        # Salva scalers, colunas e threshold
+        artifacts = {
+            "scaler_time": self.scaler_time,
+            "scaler_pca": self.scaler_pca,
+            "scaler_amount": self.scaler_amount,
+            "input_columns": self.input_columns,
+            "threshold": self.threshold,
+        }
+        artifacts_path = os.path.join(self.model_dir, "artifacts.pkl")
+        joblib.dump(artifacts, artifacts_path)
 
     def load(self):
-        pass
+        """Carrega modelo e artefatos do disco"""
+        model_path = os.path.join(self.model_dir, "autoencoder.keras")
+        artifacts_path = os.path.join(self.model_dir, "artifacts.pkl")
 
+        if not os.path.exists(model_path) or not os.path.exists(artifacts_path):
+            raise FileNotFoundError("Modelo ou artefatos não encontrados em disco.")
+
+        # Carrega modelo Keras
+        self.autoencoder = tf.keras.models.load_model(model_path)
+
+        # Carrega scalers, colunas e threshold
+        artifacts = joblib.load(artifacts_path)
+        self.scaler_time = artifacts.get("scaler_time")
+        self.scaler_pca = artifacts.get("scaler_pca")
+        self.scaler_amount = artifacts.get("scaler_amount")
+        self.input_columns = artifacts.get("input_columns")
+        self.threshold = artifacts.get("threshold")
+
+        return self
+    
