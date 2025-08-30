@@ -1,4 +1,4 @@
-from tests.test_utills import get_data
+from tests.test_utils import get_data
 import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score, precision_score, recall_score
 

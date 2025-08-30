@@ -1,4 +1,4 @@
-from .test_utills import get_data
+from .test_utils import get_data
 from model.model import Model
 import unittest
 
