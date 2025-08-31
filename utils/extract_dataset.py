@@ -1,5 +1,6 @@
 import os
 import json
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 def load_environment():
     with open("utils/kaggle.json", "r") as f:
@@ -9,8 +10,6 @@ def load_environment():
     os.environ["KAGGLE_KEY"] = creds["key"]
 
 def load_dataset():
-    from kaggle.api.kaggle_api_extended import KaggleApi
-
     api = KaggleApi()
     api.authenticate()
 
