@@ -1,5 +1,4 @@
 venv/*
 venv
-creditcard.csv
 .kaggle/
 kaggle.json
