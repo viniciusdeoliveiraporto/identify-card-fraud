@@ -1,12 +1,12 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
-import data.normalize as normalize
+import utils.dataset_utils as normalize
 
 def split_train_test():
     print("Dividindo dataset em treino e teste...")
     df_verdadeiro = normalize.min_max()
 
-    df = df_verdadeiro.head(543)
+    df = df_verdadeiro.head(600)
 
     df_normal = df[df["Class"] == 0]
     df_fraud = df[df["Class"] == 1]

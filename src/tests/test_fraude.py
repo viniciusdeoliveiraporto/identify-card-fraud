@@ -1,4 +1,4 @@
-from .test_utils import get_data
+from utils.test_utils import get_data
 from model.autoencoder import AutoencoderFraudDetector
 import unittest
 
@@ -8,7 +8,7 @@ class TestModel(unittest.TestCase):
         self.count = 256
         self.data_test = get_data(self.count)
         self.model = AutoencoderFraudDetector()
-        self.model.train(epochs=10)  # Treina o modelo antes dos testes
+        self.model.train(epochs=20)  # Treina o modelo antes dos testes
 
     # Teste apenas com fraudes
     def test_only_frauds(self):
