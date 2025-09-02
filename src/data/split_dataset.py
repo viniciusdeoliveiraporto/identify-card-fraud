@@ -1,16 +1,17 @@
 from sklearn.model_selection import train_test_split
-from .normalize import min_max
 import pandas as pd
+import utils.dataset_utils as normalize
 
 def split_train_test():
-    df_verdadeiro = min_max()
+    print("Dividindo dataset em treino e teste...")
+    df_verdadeiro = normalize.min_max()
 
-    df = df_verdadeiro.head(543)
+    df = df_verdadeiro.head(600)
 
     df_normal = df[df['Class'] == 0]
     df_fraud = df[df['Class'] == 1]
 
-    df_train, df_val = train_test_split(df_normal, test_size=0.2, random_state=42)
+    df_train, df_val = train_test_split(df_normal, test_size=0.2, random_state=40)
 
     df_test = pd.concat([df_val, df_fraud])
 
@@ -22,7 +23,5 @@ def split_train_test():
 
 
 if __name__ == "__main__":
-
-    print(split_train_test())
-
+    split_train_test()
     print("Dataset dividido em treino e teste")
