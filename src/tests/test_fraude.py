@@ -1,5 +1,10 @@
+import os
+
+import numpy as np
+import pandas as pd
 from ..model.autoencoder import AutoencoderFraudDetector
 from ..data.split_dataset import split_train_test
+from ..utils.dataset_utils import min_max
 import unittest
 
 
@@ -9,93 +14,156 @@ class TestModel(unittest.TestCase):
         self.ds_train, self.ds_test, self.labels_test = split_train_test()
         self.model = AutoencoderFraudDetector()
         self.model.train(epochs=20)
-
-    def test_model_only_fraud(self):
-        """Todos os testes são fraudes"""
-        frauds = self.ds_test[self.labels_test == 1]
-        test_set = [row.tolist() for row in frauds]
-        test_labels =  [1]*len(frauds)
-
-        #testa linha a linha
+    
+    def _run_test_set(self, test_set, test_labels, tolerance=0.2):
         failures = 0
         for x, y_true in zip(test_set, test_labels):
-            pred = self.model.predict(x)  
-            if (pred != y_true):
-                failures+=1
+            pred = self.model.predict(x)
+            if pred != y_true:
+                failures += 1
         
         """Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
-        if (failures > int(len(frauds)*0.2)):
-            self.fail(f"De {len(frauds)} testes {failures} asserts falharam:\n")
+        if failures > int(len(test_labels) * tolerance):
+            self.fail(f"De {len(test_labels)} testes {failures} falharam.")
+
+     #---------- Testes de predição ----------
+    def test_only_fraud(self):
+        """Todos os testes são fraudes"""
+        frauds = self.ds_test[self.labels_test == 1]
+        if len(frauds) == 0:
+            self.skipTest("Não há fraudes suficientes para o teste")
+        
+        test_set = [row.tolist() for row in frauds]
+        test_labels =  [1]*len(frauds)
+        self._run_test_set(test_set, test_labels)
+
 
     def test_model_only_legit(self):
         """Todos os testes não são fraudes"""
         
         normals = self.ds_test[self.labels_test == 0]
+        if len(normals) == 0:
+            self.skipTest("Não há não fraudes suficientes para o teste")
+
         test_set = [row.tolist() for row in normals]
         test_labels =  [0]*len(normals)
+        self._run_test_set(test_set, test_labels)
 
-        #testa linha a linha
-        failures = 0
-        for x, y_true in zip(test_set, test_labels):
-            pred = self.model.predict(x)  
-            if (pred != y_true):
-                failures+=1
-        
-        """Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
-        if (failures > int(len(normals)*0.2)):
-            self.fail(f"De {len(normals)} testes {failures} asserts falharam:\n") 
 
     def test_model_ninety_fraud(self):
-        """90% dos testes não são fraudes e 10% são fraudes"""
-
+        """90% não fraudes e 10% fraudes"""
         frauds = self.ds_test[self.labels_test == 1]
         normals = self.ds_test[self.labels_test == 0]
 
-        "O número de fraudes é muito menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 9:1"
-        total_test = min(len(frauds), len(normals))  
+        "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 9:1"
+        total_test = min(len(frauds), len(normals))
         if total_test == 0:
-            self.fail("Não há fraudes ou normais suficientes para este teste.")
-        
-        n_fraud = max(1, int(total_test * 0.1))      # 10% fraudes
-        n_normal = min(len(normals), int(n_fraud * 9)) # 90% normais
+            self.skipTest("Não há dados suficientes para o teste 90/10")
 
-     
-        test_set = [row.tolist() for row in frauds[:n_fraud]] + [row.tolist() for row in normals[:n_normal]]
-        test_labels = [1]*n_fraud + [0]*n_normal
+        n_fraud = max(1, int(total_test * 0.1)) # 10%
+        n_normal = int(n_fraud * 9) # 90%
 
-        #testa linha a linha
-        failures = 0
-        for x, y_true in zip(test_set, test_labels):
-            pred = self.model.predict(x)
-            if (pred != y_true):
-                failures+=1
-
-        """Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
-        if (failures > int(len(test_labels)*0.2)):
-            self.fail(f"De {len(test_labels)} testes {failures} asserts falharam:\n") 
+        test_set = [row.tolist() for row in frauds[:n_fraud]] 
+        test_set += [row.tolist() for row in normals[:n_normal]]
+        test_labels = [1] * n_fraud + [0] * n_normal
+        self._run_test_set(test_set, test_labels)
 
     
     def test_model_half_fraud(self):
-        """50% dos testes são fraudes e os outros 50% não são fraudes"""
-
+        """50% fraudes e 50% não fraudes"""
         frauds = self.ds_test[self.labels_test == 1]
         normals = self.ds_test[self.labels_test == 0]
 
-        "O número de fraudes é muito menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 5:5"
+        "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 5:5"
         total_test = min(len(frauds), len(normals))
-        test_set = [row.tolist() for row in frauds[:total_test]] + [row.tolist() for row in normals[:total_test]]
-        test_labels = [1]*total_test + [0]*total_test
+        if total_test == 0:
+            self.skipTest("Não há dados suficientes para o teste 50/50")
 
-        failures = 0
-        for x, y_true in zip(test_set, test_labels):
-            pred = self.model.predict(x)  
-            if (pred != y_true):
-                failures+=1
-        
-        """Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
-        if (failures > int(len(test_labels)*0.2)):
-            self.fail(f"De {len(test_labels)} testes {failures} asserts falharam:\n") 
+        test_set = [row.tolist() for row in frauds[:total_test]] + [row.tolist() for row in normals[:total_test]]
+        test_labels = [1] * total_test + [0] * total_test
+        self._run_test_set(test_set, test_labels)
+
+
+    # ---------- Cobertura ----------
+    def test_train_runs(self):
+        """Verifica se train() roda sem erros"""
+        try:
+            history = self.model.train(epochs=1) 
+        except Exception as e:
+            self.fail(f"train() levantou uma exceção: {e}")
+        self.assertTrue(len(history.history['loss']) >= 1, "train() não retornou histórico válido")
+
+    def test_evaluate_runs(self):
+        """Verifica se evaluate roda sem erros"""
+        try:
+            self.model.evaluate()
+        except Exception as e:
+            self.fail(f"evaluate() levantou uma exceção: {e}")
+
+
+    def test_save_and_load_model(self):
+        """Testa salvar e carregar o modelo"""
+        temp_file = "temp_autoencoder.keras"
+
+        self.model.save(temp_file)
+
+        model_path = os.path.join(os.path.dirname(__file__), "..", "model", "saved", temp_file)
+        model_path = os.path.abspath(model_path)
+        self.assertTrue(os.path.exists(model_path))
+       
+        model2 = AutoencoderFraudDetector()
+        model2.load(temp_file) #Carrega modelo
+
+        fraud_row = self.ds_test[self.labels_test == 1][0].tolist()
+        _ = model2.predict(fraud_row)
+      
+        os.remove(model_path)  #Remove arquivo temp
     
+    def test_save_runtime_raises(self):
+        """Verifica se save levanta RuntimeError quando não há modelo"""
+        model = AutoencoderFraudDetector() 
+        model.autoencoder = None # o autoencoder é definido no __init__ então nunca é None, mas para testar a função é necessário definir como None.
+        try:
+            model.save("teste.keras")
+            self.fail("Era esperado RuntimeError")
+        except RuntimeError as e:
+            self.assertIn("Nenhum modelo treinado", str(e))
+
+    def test_load_filenotfound_raises(self):
+        """Verifica se load levanta FileNotFoundError quando o arquivo não existe"""
+        model = AutoencoderFraudDetector()
+        try:
+            model.load("arquivo_inexistente.keras")
+            self.fail("Era esperado FileNotFoundError")
+        except FileNotFoundError as e:
+            self.assertIn("não encontrado", str(e))
+
+    def test_split_train_test(self):
+        """Verifica se split_train_test divide corretamente o dataset"""
+        try:
+            ds_train, ds_test, labels_test = split_train_test()
+        except Exception as e:
+            self.fail(f"split_train_test levantou uma exceção: {e}")
+
+        # Verifica se retornou 3 elementos
+        self.assertEqual(len([ds_train, ds_test, labels_test]), 3)
+
+        # Verifica se são arrays numpy
+        self.assertIsInstance(ds_train, np.ndarray)
+        self.assertIsInstance(ds_test, np.ndarray)
+        self.assertIsInstance(labels_test, np.ndarray)
+
+    def test_returns_dataframe(self):
+        """Verifica se min_max retorna um DataFrame"""
+        df = min_max()
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_columns_normalized(self):
+        """Verifica se Amount e Time estão normalizados entre 0 e 1"""
+        df = min_max()
+        self.assertTrue(df['Amount'].between(0, 1).all())
+        self.assertTrue(df['Time'].between(0, 1).all())
+
 
 if __name__ == "__main__":
     unittest.main()

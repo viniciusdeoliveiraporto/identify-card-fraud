@@ -1,7 +1,11 @@
 import matplotlib.pyplot as plt
-from src.split_dataset import split_train_test
+from ..data.split_dataset import split_train_test
+from ..model.autoencoder import AutoencoderFraudDetector
 from sklearn.metrics import f1_score, recall_score
 
+
+model = AutoencoderFraudDetector()
+model.train(epochs=20)
 
 def model_metrics(model):
     _, ds_test, labels_test = split_train_test()
@@ -26,10 +30,11 @@ def model_metrics(model):
     plt.ylabel('Valor')
     plt.title('Métricas do Modelo')
     
-    # Mostra valores acima das barras
     for i, v in enumerate(metrics):
         plt.text(i, v + 0.02, f"{v:.2f}", ha='center')
     
     plt.show()
-    
     return recall, f1
+
+if __name__ == "__main__":
+    model_metrics(model)

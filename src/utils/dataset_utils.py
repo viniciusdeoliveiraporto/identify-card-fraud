@@ -2,6 +2,7 @@ from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import os
 
+
 def min_max():
     print("Carregando csv...")
     base_path = os.path.dirname(__file__)

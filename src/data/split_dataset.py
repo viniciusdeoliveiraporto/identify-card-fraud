@@ -20,8 +20,4 @@ def split_train_test():
     labels_test = df_test['Class'].values  
 
     return ds_train, ds_test, labels_test
-
-
-if __name__ == "__main__":
-    split_train_test()
-    print("Dataset dividido em treino e teste")
+    
