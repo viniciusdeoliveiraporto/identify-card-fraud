@@ -26,7 +26,7 @@ python -m src.main
 ```
 
 ### 4. Execute os testes
-Para executar os testes, tambem é necessario estar fora da pasta src para evitar os mesmos erros de importação
+Para executar os testes, tambem é necessario estar fora da pasta src para evitar os mesmos erros de importação (ModuleNotFoundError: No module named 'src').
 
 ```bash
 python -m pytest -v src/tests/test_fraude.py

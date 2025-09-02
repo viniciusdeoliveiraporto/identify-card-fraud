@@ -16,11 +16,11 @@ if __name__ == "__main__":
 
         if user_input == "1":
             print("Treinando o autocodificador...\n")
-            model.train(epochs=25)
+            model.train(epochs=20)
             print("Treinamento concluido!\n")
         elif user_input == "2":
             print("Avaliando o autocodificador...\n")
-            model.evaluate(threshold_percentile=99)
+            model.evaluate(threshold_percentile=90)
             print("Avaliação concluida!\n")
         elif user_input == "3":
             print("Salvando o modelo...\n")
