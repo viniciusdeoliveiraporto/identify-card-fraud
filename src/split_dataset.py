@@ -1,9 +1,9 @@
 from sklearn.model_selection import train_test_split
-import normalize
+from .normalize import min_max
 import pandas as pd
 
 def split_train_test():
-    df_verdadeiro = normalize.min_max()
+    df_verdadeiro = min_max()
 
     df = df_verdadeiro.head(543)
 
@@ -23,6 +23,6 @@ def split_train_test():
 
 if __name__ == "__main__":
 
-    split_train_test()
+    print(split_train_test())
 
     print("Dataset dividido em treino e teste")

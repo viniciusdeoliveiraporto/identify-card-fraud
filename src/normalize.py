@@ -1,4 +1,5 @@
 from sklearn.preprocessing import MinMaxScaler
+
 import pandas as pd
 
 def min_max():
