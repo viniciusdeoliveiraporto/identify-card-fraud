@@ -5,7 +5,7 @@ import os
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from sklearn.metrics import classification_report, confusion_matrix
-from ..data.split_dataset import split_train_test
+from src.data.split_dataset import split_train_test
 
 class AutoencoderFraudDetector:
     def __init__(self):

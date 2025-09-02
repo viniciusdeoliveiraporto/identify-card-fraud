@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from src.split_dataset import split_train_test
+from src.data.split_dataset import split_train_test
 from sklearn.metrics import f1_score, recall_score
 
 

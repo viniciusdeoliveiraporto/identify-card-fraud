@@ -1,6 +1,6 @@
-from sklearn.model_selection import train_test_split
 import pandas as pd
-from ..utils.dataset_utils import min_max 
+from sklearn.model_selection import train_test_split
+from src.utils.dataset_utils import min_max 
 
 def split_train_test():
     print("Dividindo dataset em treino e teste...")
