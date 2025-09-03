@@ -4,7 +4,7 @@ if __name__ == "__main__":
     start = True
     model = AutoencoderFraudDetector()
 
-    print("Ola! Esse é o prototipo inicial do sistema de detecção de anomalias/fraudes em transações de cartão de crédito.\n")
+    print("\nOla! Esse é o prototipo inicial do sistema de detecção de anomalias/fraudes em transações de cartão de crédito.\n")
 
     while(start):
         user_input = input("Quais das opções abaixo você deseja realizar?\n" +

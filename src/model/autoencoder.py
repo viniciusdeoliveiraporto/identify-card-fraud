@@ -1,6 +1,9 @@
+import os
 import tensorflow
 import numpy as np
-import os
+
+# Silencia avisos do TensorFlow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
