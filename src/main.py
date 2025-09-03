@@ -20,7 +20,7 @@ if __name__ == "__main__":
             print("Treinamento concluido!\n")
         elif user_input == "2":
             print("Avaliando o autocodificador...\n")
-            model.evaluate(threshold_percentile=90)
+            model.evaluate(threshold_percentile=85)
             print("Avaliação concluida!\n")
         elif user_input == "3":
             print("Salvando o modelo...\n")

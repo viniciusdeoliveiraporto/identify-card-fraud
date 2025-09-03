@@ -14,11 +14,11 @@ class AutoencoderFraudDetector:
 
         # Encoder
         input_layer = Input(shape=(input_dim,))
-        encoder = Dense(16, activation="relu")(input_layer)
-        encoder = Dense(8, activation="relu")(encoder)
+        encoder = Dense(32, activation="relu")(input_layer)
+        encoder = Dense(16, activation="relu")(encoder)
 
         # Decoder
-        decoder = Dense(16, activation="relu")(encoder)
+        decoder = Dense(32, activation="relu")(encoder)
         decoder = Dense(input_dim, activation="linear")(decoder)
 
         # Encoder: input_dim -> 32 -> 16 -> 8
@@ -47,7 +47,7 @@ class AutoencoderFraudDetector:
         )
         return history
 
-    def evaluate(self, threshold_percentile=90):
+    def evaluate(self, threshold_percentile=85):
         reconstructions = self.autoencoder.predict(self.ds_test)
         mse = np.mean(np.power(self.ds_test - reconstructions, 2), axis=1)
 
@@ -57,7 +57,7 @@ class AutoencoderFraudDetector:
         print(confusion_matrix(self.labels_test, y_pred))
         print(classification_report(self.labels_test, y_pred))
 
-    def predict(self, row, threshold_percentile=90):
+    def predict(self, row, threshold_percentile=85):
         row_array = np.array([float(x) for x in row]).reshape(1, -1)
 
         reconstruction = self.autoencoder.predict(row_array)
