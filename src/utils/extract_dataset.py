@@ -1,6 +1,6 @@
 import os
 import json
-from kaggle.api.kaggle_api_extended import KaggleApi
+from kaggle.api.kaggle_api_extended import KaggleApi # type: ignore
 
 def load_environment():
     try:

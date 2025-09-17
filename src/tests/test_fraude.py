@@ -9,10 +9,11 @@ from src.utils.dataset_utils import load_dataset
 
 class TestModel(unittest.TestCase):
    
-    def setUp(self):
-        self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
-        self.model = AutoencoderFraudDetector()
-        self.model.train(epochs=10)
+    @classmethod
+    def setUpClass(cls):
+        cls.ds_train, cls.ds_val, cls.ds_test, cls.labels_test = split_train_test()
+        cls.model = AutoencoderFraudDetector()
+        cls.model.train(epochs=10)
     
     def _run_test_set(self, test_set, test_labels, tolerance=0.2):
         failures = 0

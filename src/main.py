@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
         if user_input == "1":
             print("Treinando o autocodificador...\n")
-            model.train(epochs=10, batch_size=128, threshold_percentile=95)
+            model.train(epochs=10, batch_size=128, threshold_percentile=96)
             print("Treinamento concluido!\n")
         elif user_input == "2":
             print("Avaliando o autocodificador...\n")

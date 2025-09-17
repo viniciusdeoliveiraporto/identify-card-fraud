@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import pandas as pd
 import os
 
@@ -24,6 +24,7 @@ def load_dataset():
             raise FileNotFoundError("Nenhum CSV encontrado! Verifique o caminho para creditcard.csv ou sample.csv.")
 
     # Remover a coluna Time e normalizar Amount
+    # scaler_amount = MinMaxScaler()
     df = df.drop(columns=["Time"])
     scaler_amount = StandardScaler()
     df[["Amount"]] = scaler_amount.fit_transform(df[["Amount"]])

@@ -49,11 +49,11 @@ class AutoencoderFraudDetector:
         self.autoencoder.compile(optimizer="adam", loss="mse")
 
     # ----------------- Treinar modelo, Avaliar e Adivinhar transações -----------------
-    def train(self, epochs=5, batch_size=128, threshold_percentile=95):
+    def train(self, epochs=10, batch_size=128, threshold_percentile=95):
         early_stop = EarlyStopping(
             monitor="val_loss",
-            patience=2,
-            min_delta=5e-3,
+            patience=4,
+            min_delta=1e-4,
             restore_best_weights=True
         )
 
@@ -66,11 +66,11 @@ class AutoencoderFraudDetector:
             callbacks=[early_stop]
         )
         
-        if self.threshold is None:
-            reconstructions_val = self.autoencoder.predict(self.ds_val)
-            mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
-            self.threshold = np.percentile(mse_val, threshold_percentile)
-            print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
+        #if self.threshold is None:
+        reconstructions_val = self.autoencoder.predict(self.ds_val)
+        mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
+        self.threshold = np.percentile(mse_val, threshold_percentile)
+        print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
 
         return history
 
