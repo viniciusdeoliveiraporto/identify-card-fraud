@@ -5,15 +5,14 @@ import pandas as pd
 
 from src.model.autoencoder import AutoencoderFraudDetector
 from src.data.split_dataset import split_train_test
-from src.utils.dataset_utils import min_max
-
+from src.utils.dataset_utils import load_dataset
 
 class TestModel(unittest.TestCase):
    
     def setUp(self):
-        self.ds_train, self.ds_test, self.labels_test = split_train_test()
+        self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
         self.model = AutoencoderFraudDetector()
-        self.model.train(epochs=20)
+        self.model.train(epochs=10)
     
     def _run_test_set(self, test_set, test_labels, tolerance=0.2):
         failures = 0
@@ -154,13 +153,13 @@ class TestModel(unittest.TestCase):
         self.assertIsInstance(labels_test, np.ndarray)
 
     def test_returns_dataframe(self):
-        """Verifica se min_max retorna um DataFrame"""
-        df = min_max()
+        """Verifica se load_dataset retorna um DataFrame"""
+        df, _ = load_dataset()
         self.assertIsInstance(df, pd.DataFrame)
 
     def test_columns_normalized(self):
         """Verifica se Amount e Time estão normalizados entre 0 e 1"""
-        df = min_max()
+        df, _ = load_dataset()
         self.assertTrue(df['Amount'].between(0, 1).all())
         self.assertTrue(df['Time'].between(0, 1).all())
 

@@ -5,72 +5,95 @@ import numpy as np
 # Silencia avisos do TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.models import Model # type: ignore
+from tensorflow.keras.layers import Dropout, Input, Dense # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping # type: ignore
 from sklearn.metrics import classification_report, confusion_matrix
 from src.data.split_dataset import split_train_test
 
 class AutoencoderFraudDetector:
     def __init__(self):
-        self.ds_train, self.ds_test, self.labels_test = split_train_test()
-        input_dim = self.ds_train.shape[1] 
+        self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
+        self.input_dim = self.ds_train.shape[1] 
+        self.threshold = None
+        
+        input_layer = Input(shape=(self.input_dim,))
 
-        # Encoder
-        input_layer = Input(shape=(input_dim,))
-        encoder = Dense(32, activation="relu")(input_layer)
-        encoder = Dense(16, activation="relu")(encoder)
+        # ---------------- Encoder ----------------
+        encoded_128 = Dense(128, activation="relu")(input_layer)
+        encoded_128 = Dropout(0.1)(encoded_128)
 
-        # Decoder
-        decoder = Dense(32, activation="relu")(encoder)
-        decoder = Dense(input_dim, activation="linear")(decoder)
+        encoded_64 = Dense(64, activation="relu")(encoded_128)
+        encoded_64 = Dropout(0.1)(encoded_64)
 
-        # Encoder: input_dim -> 32 -> 16 -> 8
-        #input_layer = Input(shape=(input_dim,))
-        #encoder = Dense(32, activation="relu")(input_layer)
-        #encoder = Dense(16, activation="relu")(encoder)
-        #encoder = Dense(8,  activation="relu")(encoder)
+        encoded_32 = Dense(32, activation="relu")(encoded_64)
+        encoded_32 = Dropout(0.1)(encoded_32)
 
-        # Decoder: 8 -> 16 -> 32 -> input_dim
-        #decoder = Dense(16, activation="relu")(encoder)
-        #decoder = Dense(32, activation="relu")(decoder)
-        #decoder = Dense(input_dim, activation="linear")(decoder)
+        encoded_16 = Dense(16, activation="relu")(encoded_32)
 
-        # Modelo
-        self.autoencoder = Model(inputs=input_layer, outputs=decoder)
+        # ---------------- Decoder ----------------
+        decoded_32 = Dense(32, activation="relu")(encoded_16)
+        decoded_32 = Dropout(0.1)(decoded_32)
+
+        decoded_64 = Dense(64, activation="relu")(decoded_32)
+        decoded_64 = Dropout(0.1)(decoded_64)
+
+        decoded_128 = Dense(128, activation="relu")(decoded_64)
+        decoded_128 = Dropout(0.1)(decoded_128)
+
+        output_layer = Dense(self.input_dim, activation="linear")(decoded_128)
+
+        # ---------------- Modelo ----------------
+        self.autoencoder = Model(inputs=input_layer, outputs=output_layer)
         self.autoencoder.compile(optimizer="adam", loss="mse")
 
     # ----------------- NOVO: treinar, avaliar e adivinhar -----------------
-    def train(self, epochs=20, batch_size=64):
+    def train(self, epochs=5, batch_size=128, threshold_percentile=95):
+        early_stop = EarlyStopping(
+            monitor="val_loss",
+            patience=2,
+            min_delta=5e-3,
+            restore_best_weights=True
+        )
+
         history = self.autoencoder.fit(
             self.ds_train, self.ds_train,
             epochs=epochs,
             batch_size=batch_size,
-            validation_split=0.2,
-            shuffle=True
+            validation_data =(self.ds_val, self.ds_val),
+            shuffle=True,
+            callbacks=[early_stop]
         )
+        
+        #if self.threshold is None:
+        reconstructions_val = self.autoencoder.predict(self.ds_val)
+        mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
+        self.threshold = np.percentile(mse_val, threshold_percentile)
+        print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
+
         return history
 
-    def evaluate(self, threshold_percentile=85):
-        reconstructions = self.autoencoder.predict(self.ds_test)
-        mse = np.mean(np.power(self.ds_test - reconstructions, 2), axis=1)
+    def evaluate(self):
+        if self.threshold is None:
+            raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
 
-        threshold = np.percentile(mse, threshold_percentile)
-        y_pred = (mse > threshold).astype(int)
+        reconstructions_test = self.autoencoder.predict(self.ds_test)
+        mse_test = np.mean(np.power(self.ds_test - reconstructions_test, 2), axis=1)
+        y_pred = (mse_test > self.threshold).astype(int)
 
         print(confusion_matrix(self.labels_test, y_pred))
         print(classification_report(self.labels_test, y_pred))
 
-    def predict(self, row, threshold_percentile=85):
+    def predict(self, row):
+        if self.threshold is None:
+            raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
+        
         row_array = np.array([float(x) for x in row]).reshape(1, -1)
 
         reconstruction = self.autoencoder.predict(row_array)
-        mse = np.mean(np.power(row_array - reconstruction, 2))
+        mse_row = np.mean(np.power(row_array - reconstruction, 2))
 
-        reconstructions_test = self.autoencoder.predict(self.ds_test)
-        mse_test = np.mean(np.power(self.ds_test - reconstructions_test, 2), axis=1)
-        threshold = np.percentile(mse_test, threshold_percentile)
-
-        return int(mse > threshold)
+        return int(mse_row > self.threshold)
 
     # ----------------- NOVO: salvar e carregar -----------------
     def save(self, filename="autoencoder.keras"):

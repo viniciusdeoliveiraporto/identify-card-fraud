@@ -1,6 +1,8 @@
 from src.model.autoencoder import AutoencoderFraudDetector
 
 if __name__ == "__main__":
+    print("Iniciando o sistema de detecção de fraudes...\n")
+
     start = True
     model = AutoencoderFraudDetector()
 
@@ -16,11 +18,11 @@ if __name__ == "__main__":
 
         if user_input == "1":
             print("Treinando o autocodificador...\n")
-            model.train(epochs=20)
+            model.train(epochs=10, batch_size=128, threshold_percentile=95)
             print("Treinamento concluido!\n")
         elif user_input == "2":
             print("Avaliando o autocodificador...\n")
-            model.evaluate(threshold_percentile=85)
+            model.evaluate()
             print("Avaliação concluida!\n")
         elif user_input == "3":
             print("Salvando o modelo...\n")

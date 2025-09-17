@@ -1,8 +1,8 @@
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import os
 
-def min_max():
+def load_dataset():
     print("Carregando csv...")
     base_path = os.path.dirname(__file__)
     data_folder = os.path.join(base_path, "../data")  # ../data porque estamos em utils
@@ -19,18 +19,22 @@ def min_max():
         print("creditcard.csv não encontrado, tentando sample.csv...")
         try:
             df = pd.read_csv(sample_database_path)
-            print("csample.csv carregado com sucesso!")
+            print("sample.csv carregado com sucesso!")
         except FileNotFoundError:
-            raise FileNotFoundError("Nenhum CSV encontrado! Verifique o caminho para real_database.csv ou creditcard.csv.")
+            raise FileNotFoundError("Nenhum CSV encontrado! Verifique o caminho para creditcard.csv ou sample.csv.")
 
-    scaler = MinMaxScaler()
-    df_to_scale = df[['Amount', 'Time']]
-    df_scaled = scaler.fit_transform(df_to_scale)
+    # Remover a coluna Time e normalizar Amount
+    df = df.drop(columns=["Time"])
+    scaler_amount = StandardScaler()
+    df[["Amount"]] = scaler_amount.fit_transform(df[["Amount"]])
 
-    df[['Amount', 'Time']] = df_scaled
+    # Escalonar V1–V28
+    pca_cols = [f"V{i}" for i in range(1, 29)]
+    scaler_pca = StandardScaler()
+    df[pca_cols] = scaler_pca.fit_transform(df[pca_cols])
 
-    return df 
+    return df
 
 if __name__ == "__main__":
-    min_max()
-    print("Normalização de Amount e Time realizada com sucesso!") 
+    load_dataset()
+    print("Normalização dos dados realizada com sucesso!") 
