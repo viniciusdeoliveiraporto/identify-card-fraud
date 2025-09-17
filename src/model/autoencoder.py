@@ -1,5 +1,6 @@
 import os
 import tensorflow
+import json
 import numpy as np
 
 # Silencia avisos do TensorFlow
@@ -47,7 +48,7 @@ class AutoencoderFraudDetector:
         self.autoencoder = Model(inputs=input_layer, outputs=output_layer)
         self.autoencoder.compile(optimizer="adam", loss="mse")
 
-    # ----------------- NOVO: treinar, avaliar e adivinhar -----------------
+    # ----------------- Treinar modelo, Avaliar e Adivinhar transações -----------------
     def train(self, epochs=5, batch_size=128, threshold_percentile=95):
         early_stop = EarlyStopping(
             monitor="val_loss",
@@ -65,11 +66,11 @@ class AutoencoderFraudDetector:
             callbacks=[early_stop]
         )
         
-        #if self.threshold is None:
-        reconstructions_val = self.autoencoder.predict(self.ds_val)
-        mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
-        self.threshold = np.percentile(mse_val, threshold_percentile)
-        print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
+        if self.threshold is None:
+            reconstructions_val = self.autoencoder.predict(self.ds_val)
+            mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
+            self.threshold = np.percentile(mse_val, threshold_percentile)
+            print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
 
         return history
 
@@ -95,26 +96,42 @@ class AutoencoderFraudDetector:
 
         return int(mse_row > self.threshold)
 
-    # ----------------- NOVO: salvar e carregar -----------------
+    # ----------------- Salvar e Carregar modelo -----------------
     def save(self, filename="autoencoder.keras"):
-        """Salva apenas o modelo Keras dentro de src/model/saved"""
         if self.autoencoder is None:
             raise RuntimeError("Nenhum modelo treinado para salvar.")
-        
+
         save_dir = os.path.join(os.path.dirname(__file__), "saved")
         os.makedirs(save_dir, exist_ok=True)
-        model_path = os.path.join(save_dir, filename)
 
+        # Salva o modelo keras
+        model_path = os.path.join(save_dir, filename)
         self.autoencoder.save(model_path)
-        print(f"Modelo salvo em: {model_path}")
+
+        # Salva os metadados extras
+        metadata = {
+            "threshold": self.threshold
+        }
+        with open(os.path.join(save_dir, "metadata.json"), "w") as f:
+            json.dump(metadata, f)
+
+        print(f"Modelo e metadados salvos em: {save_dir}")
+
 
     def load(self, filename="autoencoder.keras"):
-        """Carrega apenas o modelo Keras de src/model/saved"""
         model_path = os.path.join(os.path.dirname(__file__), "saved", filename)
 
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Arquivo {model_path} não encontrado")
-        
+
         self.autoencoder = tensorflow.keras.models.load_model(model_path)
+
+        # Carrega os metadados extras
+        metadata_path = os.path.join(os.path.dirname(model_path), "metadata.json")
+        if os.path.exists(metadata_path):
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+                self.threshold = metadata.get("threshold", None)
+
         print(f"Modelo carregado de: {model_path}")
         return self
