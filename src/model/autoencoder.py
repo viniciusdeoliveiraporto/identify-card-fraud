@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from src.data.split_dataset import split_train_test
 
 class AutoencoderFraudDetector:
-    def _init_(self):
+    def __init__(self):
         self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
         self.input_dim = self.ds_train.shape[1] 
         self.threshold = None

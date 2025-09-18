@@ -199,3 +199,7 @@ class TestModel(unittest.TestCase):
             model.predict([0.1, 0.2, 0.3])
         except RuntimeError as e:
             self.assertIn("Threshold não definido", str(e))
+            
+
+if __name__ == "__main__":
+    unittest.main()
