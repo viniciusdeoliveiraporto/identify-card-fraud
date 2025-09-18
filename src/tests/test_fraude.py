@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from src.model.autoencoder import AutoencoderFraudDetector
-from src.data.split_dataset import split_train_test
+from src.data.split_dataset import*
 from src.utils.dataset_utils import load_dataset
 
 
@@ -18,7 +18,7 @@ class TestModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ds_train, cls.ds_val, cls.ds_test, cls.labels_test = split_train_test()
+        cls.ds_train, cls.ds_val, cls.ds_test, cls.labels_test = split_train_test_sample()
         cls.model = AutoencoderFraudDetector()
         cls.model.train(epochs=10)
 
@@ -199,7 +199,7 @@ class TestModel(unittest.TestCase):
             model.predict([0.1, 0.2, 0.3])
         except RuntimeError as e:
             self.assertIn("Threshold não definido", str(e))
-            
 
-if __name__ == "__main__":
+
+if __name__ == "__main__": # pragma: no cover
     unittest.main()
