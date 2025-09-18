@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from src.data.split_dataset import split_train_test
 
 class AutoencoderFraudDetector:
-    def __init__(self):
+    def _init_(self):
         self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
         self.input_dim = self.ds_train.shape[1] 
         self.threshold = None
@@ -21,38 +21,33 @@ class AutoencoderFraudDetector:
         input_layer = Input(shape=(self.input_dim,))
 
         # ---------------- Encoder ----------------
-        encoded_128 = Dense(128, activation="relu")(input_layer)
-        encoded_128 = Dropout(0.1)(encoded_128)
-
-        encoded_64 = Dense(64, activation="relu")(encoded_128)
-        encoded_64 = Dropout(0.1)(encoded_64)
-
-        encoded_32 = Dense(32, activation="relu")(encoded_64)
+        encoded_32 = Dense(32, activation="relu")(input_layer)
         encoded_32 = Dropout(0.1)(encoded_32)
 
-        encoded_16 = Dense(16, activation="relu")(encoded_32)
+        encoded_14 = Dense(14, activation="relu")(encoded_32)
+        encoded_14 = Dropout(0.1)(encoded_14)
+
+        encoded_7 = Dense(7, activation="relu")(encoded_14)
+        encoded_7 = Dropout(0.1)(encoded_7)
 
         # ---------------- Decoder ----------------
-        decoded_32 = Dense(32, activation="relu")(encoded_16)
+        decoded_7 = Dense(7, activation="relu")(encoded_7)
+        decoded_7 = Dropout(0.1)(decoded_7)
+
+        decoded_32 = Dense(32, activation="relu")(decoded_7)
         decoded_32 = Dropout(0.1)(decoded_32)
 
-        decoded_64 = Dense(64, activation="relu")(decoded_32)
-        decoded_64 = Dropout(0.1)(decoded_64)
-
-        decoded_128 = Dense(128, activation="relu")(decoded_64)
-        decoded_128 = Dropout(0.1)(decoded_128)
-
-        output_layer = Dense(self.input_dim, activation="linear")(decoded_128)
+        output_layer = Dense(self.input_dim, activation="linear")(decoded_32)
 
         # ---------------- Modelo ----------------
         self.autoencoder = Model(inputs=input_layer, outputs=output_layer)
         self.autoencoder.compile(optimizer="adam", loss="mse")
 
     # ----------------- Treinar modelo, Avaliar e Adivinhar transações -----------------
-    def train(self, epochs=10, batch_size=128, threshold_percentile=95):
+    def train(self, epochs=10, batch_size=128, threshold_percentile=96):
         early_stop = EarlyStopping(
             monitor="val_loss",
-            patience=4,
+            patience=3,
             min_delta=1e-4,
             restore_best_weights=True
         )

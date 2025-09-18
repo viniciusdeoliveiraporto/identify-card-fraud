@@ -1,3 +1,8 @@
+
+"""
+Testes para AutoencoderFraudDetector.
+"""
+
 import os
 import unittest
 import numpy as np
@@ -7,22 +12,24 @@ from src.model.autoencoder import AutoencoderFraudDetector
 from src.data.split_dataset import split_train_test
 from src.utils.dataset_utils import load_dataset
 
+
 class TestModel(unittest.TestCase):
-   
+    """Testa predição, treino, salvamento e avaliação do modelo de fraude."""
+
     @classmethod
     def setUpClass(cls):
         cls.ds_train, cls.ds_val, cls.ds_test, cls.labels_test = split_train_test()
         cls.model = AutoencoderFraudDetector()
         cls.model.train(epochs=10)
-    
+
     def _run_test_set(self, test_set, test_labels, tolerance=0.2):  # pragma: no cover
         failures = 0
         for x, y_true in zip(test_set, test_labels):
             pred = self.model.predict(x)
             if pred != y_true:
                 failures += 1
-        
-        """Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
+
+        #Se a quantidade de erros do modelo ultrapassar 20% do total de testes, FALHA"""
         if failures > int(len(test_labels) * tolerance):
             self.fail(f"De {len(test_labels)} testes {failures} falharam.")
 
@@ -32,7 +39,7 @@ class TestModel(unittest.TestCase):
         frauds = self.ds_test[self.labels_test == 1]
         if len(frauds) == 0: # pragma: no cover
             self.skipTest("Não há fraudes suficientes para o teste")
-        
+
         test_set = [row.tolist() for row in frauds]
         test_labels =  [1]*len(frauds)
         self._run_test_set(test_set, test_labels)
@@ -40,7 +47,7 @@ class TestModel(unittest.TestCase):
 
     def test_model_only_legit(self):
         """Todos os testes não são fraudes"""
-        
+
         normals = self.ds_test[self.labels_test == 0]
         if len(normals) == 0: # pragma: no cover
             self.skipTest("Não há não fraudes suficientes para o teste")
@@ -55,7 +62,9 @@ class TestModel(unittest.TestCase):
         frauds = self.ds_test[self.labels_test == 1]
         normals = self.ds_test[self.labels_test == 0]
 
-        "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 9:1"
+        #O número de fraudes é menor que o número de transações normais
+        #então limitamos o tamanho total do teste para manter
+        #a proporção de 9:1
         total_test = min(len(frauds), len(normals))
         if total_test == 0: # pragma: no cover
             self.skipTest("Não há dados suficientes para o teste 90/10")
@@ -63,23 +72,26 @@ class TestModel(unittest.TestCase):
         n_fraud = max(1, int(total_test * 0.1)) # 10%
         n_normal = int(n_fraud * 9) # 90%
 
-        test_set = [row.tolist() for row in frauds[:n_fraud]] 
+        test_set = [row.tolist() for row in frauds[:n_fraud]]
         test_set += [row.tolist() for row in normals[:n_normal]]
         test_labels = [1] * n_fraud + [0] * n_normal
         self._run_test_set(test_set, test_labels)
 
-    
+
     def test_model_half_fraud(self):
         """50% fraudes e 50% não fraudes"""
         frauds = self.ds_test[self.labels_test == 1]
         normals = self.ds_test[self.labels_test == 0]
 
-        "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 5:5"
+        #O número de fraudes é menor que o número de transações normais
+        #então limitamos o tamanho total do teste para manter
+        #a proporção de 5:5
         total_test = min(len(frauds), len(normals))
         if total_test == 0: # pragma: no cover
             self.skipTest("Não há dados suficientes para o teste 50/50")
 
-        test_set = [row.tolist() for row in frauds[:total_test]] + [row.tolist() for row in normals[:total_test]]
+        test_set = [row.tolist() for row in frauds[:total_test]]
+        test_set += [row.tolist() for row in normals[:total_test]]
         test_labels = [1] * total_test + [0] * total_test
         self._run_test_set(test_set, test_labels)
 
@@ -88,10 +100,11 @@ class TestModel(unittest.TestCase):
     def test_train_runs(self):
         """Verifica se train() roda sem erros"""
         try:
-            history = self.model.train(epochs=1) 
+            history = self.model.train(epochs=1)
         except Exception as e: # pragma: no cover
             self.fail(f"train() levantou uma exceção: {e}")
-        self.assertTrue(len(history.history['loss']) >= 1, "train() não retornou histórico válido")
+        self.assertTrue(len(history.history['loss']) >= 1,
+                        "train() não retornou histórico válido")
 
     def test_evaluate_runs(self):
         """Verifica se evaluate roda sem erros"""
@@ -110,19 +123,21 @@ class TestModel(unittest.TestCase):
         model_path = os.path.join(os.path.dirname(__file__), "..", "model", "saved", temp_file)
         model_path = os.path.abspath(model_path)
         self.assertTrue(os.path.exists(model_path))
-       
+
         model2 = AutoencoderFraudDetector()
         model2.load(temp_file) #Carrega modelo
 
         fraud_row = self.ds_test[self.labels_test == 1][0].tolist()
         _ = model2.predict(fraud_row)
-      
+
         os.remove(model_path)  #Remove arquivo temp
-    
+
     def test_save_runtime_raises(self):
         """Verifica se save levanta RuntimeError quando não há modelo"""
-        model = AutoencoderFraudDetector() 
-        model.autoencoder = None # o autoencoder é definido no __init__ então nunca é None, mas para testar a função é necessário definir como None.
+        model = AutoencoderFraudDetector()
+        model.autoencoder = None # o autoencoder é definido no
+        # __init__ então nunca é None,
+        # mas para testar a função é necessário definir como None.
         try:
             model.save("teste.keras")
         except RuntimeError as e:
@@ -160,8 +175,10 @@ class TestModel(unittest.TestCase):
         std = df["Amount"].std()
 
         tol = 0.1
-        self.assertTrue(abs(mean - 0.0) < tol, f"Média de Amount não está próxima de 0 (valor: {mean})")
-        self.assertTrue(abs(std - 1.0) < tol, f"Desvio padrão de Amount não está próximo de 1 (valor: {std})")
+        self.assertTrue(abs(mean - 0.0) < tol,
+                        f"Média de Amount não está próxima de 0 (valor: {mean})")
+        self.assertTrue(abs(std - 1.0) < tol,
+                        f"Desvio padrão de Amount não está próximo de 1 (valor: {std})")
 
 
     def test_evaluate_raises_without_threshold(self):
