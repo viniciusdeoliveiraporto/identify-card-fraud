@@ -4,3 +4,5 @@ venv
 kaggle.json
 creditcard.csv
 .coverage
+__pycache__/*
+__pycache__/
