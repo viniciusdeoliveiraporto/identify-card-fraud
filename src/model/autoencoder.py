@@ -65,7 +65,7 @@ class AutoencoderFraudDetector:
         reconstructions_val = self.autoencoder.predict(self.ds_val)
         mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
         self.threshold = np.percentile(mse_val, threshold_percentile)
-        print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
+        #print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
 
         return history
 

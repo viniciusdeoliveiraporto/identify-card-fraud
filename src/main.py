@@ -14,27 +14,38 @@ if __name__ == "__main__":
         "(2) Avaliar autocodificador\n" +
         "(3) Salvar modelo\n" +
         "(4) Carregar modelo\n" +
-        "(5) Sair\n")
+        "(5) Reiniciar modelo\n" +
+        "(6) Sair\n")
 
         if user_input == "1":
             print("Treinando o autocodificador...\n")
             model.train(epochs=10, batch_size=128, threshold_percentile=96)
             print("Treinamento concluido!\n")
+
         elif user_input == "2":
             print("Avaliando o autocodificador...\n")
             model.evaluate()
             print("Avaliação concluida!\n")
+
         elif user_input == "3":
             print("Salvando o modelo...\n")
             model.save("autoencoder.keras")
             print("Modelo salvo!\n")
+
         elif user_input == "4":
             print("Carregando o modelo salvo...\n")
             model = AutoencoderFraudDetector().load("autoencoder.keras")
             print("Modelo carregado!\n")
+
         elif user_input == "5":
+            print("Reiniciando o modelo...\n")
+            model = AutoencoderFraudDetector()
+            print("Modelo reiniciado!\n")
+
+        elif user_input == "6":
             print("Saindo do programa...\n")
             start = False
+            
         else:
             print("Input invalido! Tente novamente.\n\n")
 

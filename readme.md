@@ -31,6 +31,10 @@ Para executar os testes, tambem é necessario estar fora da pasta src para evita
 ```bash
 python -m pytest -v src/tests/test_fraude.py
 ```
+OU
+```bash
+python -m src.tests.test_fraude
+```
 
 ---
 ## Observações
