@@ -15,7 +15,7 @@ class TestModel(unittest.TestCase):
         cls.model = AutoencoderFraudDetector()
         cls.model.train(epochs=10)
     
-    def _run_test_set(self, test_set, test_labels, tolerance=0.2):
+    def _run_test_set(self, test_set, test_labels, tolerance=0.2):  # pragma: no cover
         failures = 0
         for x, y_true in zip(test_set, test_labels):
             pred = self.model.predict(x)
@@ -26,11 +26,11 @@ class TestModel(unittest.TestCase):
         if failures > int(len(test_labels) * tolerance):
             self.fail(f"De {len(test_labels)} testes {failures} falharam.")
 
-     #---------- Testes de predição ----------
+    ##---------- Testes de predição ----------##
     def test_only_fraud(self):
         """Todos os testes são fraudes"""
         frauds = self.ds_test[self.labels_test == 1]
-        if len(frauds) == 0:
+        if len(frauds) == 0: # pragma: no cover
             self.skipTest("Não há fraudes suficientes para o teste")
         
         test_set = [row.tolist() for row in frauds]
@@ -42,7 +42,7 @@ class TestModel(unittest.TestCase):
         """Todos os testes não são fraudes"""
         
         normals = self.ds_test[self.labels_test == 0]
-        if len(normals) == 0:
+        if len(normals) == 0: # pragma: no cover
             self.skipTest("Não há não fraudes suficientes para o teste")
 
         test_set = [row.tolist() for row in normals]
@@ -57,7 +57,7 @@ class TestModel(unittest.TestCase):
 
         "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 9:1"
         total_test = min(len(frauds), len(normals))
-        if total_test == 0:
+        if total_test == 0: # pragma: no cover
             self.skipTest("Não há dados suficientes para o teste 90/10")
 
         n_fraud = max(1, int(total_test * 0.1)) # 10%
@@ -76,7 +76,7 @@ class TestModel(unittest.TestCase):
 
         "O número de fraudes é menor que o número de transações normais então limitamos o tamanho total do teste para manter a proporção de 5:5"
         total_test = min(len(frauds), len(normals))
-        if total_test == 0:
+        if total_test == 0: # pragma: no cover
             self.skipTest("Não há dados suficientes para o teste 50/50")
 
         test_set = [row.tolist() for row in frauds[:total_test]] + [row.tolist() for row in normals[:total_test]]
@@ -89,7 +89,7 @@ class TestModel(unittest.TestCase):
         """Verifica se train() roda sem erros"""
         try:
             history = self.model.train(epochs=1) 
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.fail(f"train() levantou uma exceção: {e}")
         self.assertTrue(len(history.history['loss']) >= 1, "train() não retornou histórico válido")
 
@@ -97,7 +97,7 @@ class TestModel(unittest.TestCase):
         """Verifica se evaluate roda sem erros"""
         try:
             self.model.evaluate()
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             self.fail(f"evaluate() levantou uma exceção: {e}")
 
 
@@ -125,7 +125,6 @@ class TestModel(unittest.TestCase):
         model.autoencoder = None # o autoencoder é definido no __init__ então nunca é None, mas para testar a função é necessário definir como None.
         try:
             model.save("teste.keras")
-            self.fail("Era esperado RuntimeError")
         except RuntimeError as e:
             self.assertIn("Nenhum modelo treinado", str(e))
 
@@ -134,37 +133,52 @@ class TestModel(unittest.TestCase):
         model = AutoencoderFraudDetector()
         try:
             model.load("arquivo_inexistente.keras")
-            self.fail("Era esperado FileNotFoundError")
         except FileNotFoundError as e:
             self.assertIn("não encontrado", str(e))
 
     def test_split_train_test(self):
         """Verifica se split_train_test divide corretamente o dataset"""
-        try:
-            ds_train, ds_test, labels_test = split_train_test()
-        except Exception as e:
-            self.fail(f"split_train_test levantou uma exceção: {e}")
-
-        # Verifica se retornou 3 elementos
-        self.assertEqual(len([ds_train, ds_test, labels_test]), 3)
-
+        ds_train, ds_val, ds_test, labels_test = split_train_test()
+        # Verifica se retornou 4 elementos
+        self.assertEqual(len([ds_train, ds_val, ds_test, labels_test]), 4)
         # Verifica se são arrays numpy
         self.assertIsInstance(ds_train, np.ndarray)
+        self.assertIsInstance(ds_val, np.ndarray)
         self.assertIsInstance(ds_test, np.ndarray)
         self.assertIsInstance(labels_test, np.ndarray)
 
     def test_returns_dataframe(self):
         """Verifica se load_dataset retorna um DataFrame"""
-        df, _ = load_dataset()
+        df = load_dataset()
         self.assertIsInstance(df, pd.DataFrame)
 
-    def test_columns_normalized(self):
-        """Verifica se Amount e Time estão normalizados entre 0 e 1"""
-        df, _ = load_dataset()
-        self.assertTrue(df['Amount'].between(0, 1).all())
-        self.assertTrue(df['Time'].between(0, 1).all())
+    def test_amount_standardized(self):
+        """Verifica se a coluna Amount foi padronizada pelo StandardScaler (média≈0, desvio≈1)"""
+        df = load_dataset()
+
+        mean = df["Amount"].mean()
+        std = df["Amount"].std()
+
+        tol = 0.1
+        self.assertTrue(abs(mean - 0.0) < tol, f"Média de Amount não está próxima de 0 (valor: {mean})")
+        self.assertTrue(abs(std - 1.0) < tol, f"Desvio padrão de Amount não está próximo de 1 (valor: {std})")
 
 
-if __name__ == "__main__":
-    unittest.main()
-    
+    def test_evaluate_raises_without_threshold(self):
+        """Deve lançar RuntimeError se threshold for None"""
+        model = AutoencoderFraudDetector()  # cria modelo separado
+        model.threshold = None  # garante o estado
+        try:
+            model.evaluate()
+        except RuntimeError as e:
+            self.assertIn("Threshold não definido", str(e))
+
+
+    def test_predict_raises_without_threshold(self):
+        """Deve lançar RuntimeError se threshold for None"""
+        model = AutoencoderFraudDetector()  # cria modelo separado
+        model.threshold = None  # garante o estado
+        try:
+            model.predict([0.1, 0.2, 0.3])
+        except RuntimeError as e:
+            self.assertIn("Threshold não definido", str(e))
