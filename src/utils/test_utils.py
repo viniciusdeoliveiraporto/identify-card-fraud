@@ -1,3 +1,5 @@
+"""Esse módulo contém funções úteis para testes
+"""
 import csv
 import math
 import os
@@ -6,17 +8,18 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "sample.csv")
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "data_id.txt")
 
 def get_data(count: int) -> dict:
-    """Busca os dados para os testes do csv, sendo count a quantidade que não é fraude e 0,172% de count que é fraude"""
+    "Busca os dados para os testes do csv, sendo count a quantidade" 
+    " que não é fraude e 0,172% de count que é fraude"
 
     data = {"fraud": [], "legit": []}
     fraud_count = math.ceil(count * 0.172)
 
-    with open(OUTPUT_PATH, "w") as f:
-        pass 
+    with open(OUTPUT_PATH, "w", encoding="utf-8"):
+        pass
 
-    with open(DATA_PATH, "r") as file:
+    with open(DATA_PATH, "r", encoding="utf-8") as file:
         reader = csv.reader(file)
-        header = next(reader) 
+        next(reader)
         i = 0
         for row in reader:
             if row[-1] == "1" and len(data["fraud"]) < fraud_count:
@@ -32,7 +35,8 @@ def get_data(count: int) -> dict:
 
     return data
 
-def write_data(id: int, type: int):
-    with open(OUTPUT_PATH, "a") as file:
-        file.write(f"{id}, {type}\n")
-
+def write_data(index: int, type_data: int):
+    """Essa função escreve dados
+    """
+    with open(OUTPUT_PATH, "a", encoding="utf-8") as file:
+        file.write(f"{index}, {type_data}\n")

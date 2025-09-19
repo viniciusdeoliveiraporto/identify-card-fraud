@@ -1,8 +1,12 @@
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-import pandas as pd
+"""Esse módulo possui funções úteis para manipular o dataset 
+"""
 import os
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
 
 def load_dataset():
+    """Essa função carrega o dataset 
+    """
     print("Carregando csv...")
     base_path = os.path.dirname(__file__)
     data_folder = os.path.join(base_path, "../data")  # ../data porque estamos em utils
@@ -21,7 +25,8 @@ def load_dataset():
             df = pd.read_csv(sample_database_path)
             print("sample.csv carregado com sucesso!")
         except FileNotFoundError:
-            raise FileNotFoundError("Nenhum CSV encontrado! Verifique o caminho para creditcard.csv ou sample.csv.")
+            raise FileNotFoundError("Nenhum CSV encontrado! Verifique o" +
+                                        "caminho para creditcard.csv ou sample.csv.")
 
     # Remover a coluna Time e normalizar Amount
     # scaler_amount = MinMaxScaler()
@@ -38,4 +43,4 @@ def load_dataset():
 
 if __name__ == "__main__":
     load_dataset()
-    print("Normalização dos dados realizada com sucesso!") 
+    print("Normalização dos dados realizada com sucesso!")
