@@ -1,8 +1,12 @@
+'''Módulo para divisão das amostras entre treinamento e testes
+'''
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from src.utils.dataset_utils import *
 
 def split_train_test():
+    '''Essa função divide os dados em 20% para teste e 80% para treino
+    '''
     print("Dividindo dataset em treino e teste...")
     df = load_dataset()
 
@@ -21,6 +25,8 @@ def split_train_test():
     return ds_train, ds_val, ds_test, labels_test
 
 def split_train_test_sample():
+    '''Essa função divide os dados em 20% para teste e 80% para treino
+    '''
     print("Dividindo dataset em treino e teste...")
     df = load_dataset_test()
 
