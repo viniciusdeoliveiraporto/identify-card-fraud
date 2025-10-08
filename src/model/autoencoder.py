@@ -1,23 +1,29 @@
+'''Esse módulo encapsula a arquitetura do modelo
+'''
 import os
-import tensorflow
 import json
+import tensorflow
 import numpy as np
 
 # Silencia avisos do TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+from src.data.split_dataset import split_train_test
 from tensorflow.keras.models import Model # type: ignore
 from tensorflow.keras.layers import Dropout, Input, Dense # type: ignore
 from tensorflow.keras.callbacks import EarlyStopping # type: ignore
 from sklearn.metrics import classification_report, confusion_matrix
-from src.data.split_dataset import split_train_test
 
 class AutoencoderFraudDetector:
+    '''Essa classe abstrai e encapsula todas as funções necessárias para o modelo
+    '''
     def __init__(self):
+        '''Função para a instanciação do modelo
+        '''
         self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
-        self.input_dim = self.ds_train.shape[1] 
+        self.input_dim = self.ds_train.shape[1]
         self.threshold = None
-        
+
         input_layer = Input(shape=(self.input_dim,))
 
         # ---------------- Encoder ----------------
@@ -45,6 +51,8 @@ class AutoencoderFraudDetector:
 
     # ----------------- Treinar modelo, Avaliar e Adivinhar transações -----------------
     def train(self, epochs=10, batch_size=128, threshold_percentile=96):
+        '''Função para o treinamento do modelo sobre os dados
+        '''
         early_stop = EarlyStopping(
             monitor="val_loss",
             patience=3,
@@ -60,7 +68,7 @@ class AutoencoderFraudDetector:
             shuffle=True,
             callbacks=[early_stop]
         )
-        
+
         #if self.threshold is None:
         reconstructions_val = self.autoencoder.predict(self.ds_val)
         mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
@@ -70,6 +78,8 @@ class AutoencoderFraudDetector:
         return history
 
     def evaluate(self):
+        '''Função para avaliar o modelo sobre o conjunto de dados de teste
+        '''
         if self.threshold is None:
             raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
 
@@ -81,9 +91,11 @@ class AutoencoderFraudDetector:
         print(classification_report(self.labels_test, y_pred))
 
     def predict(self, row):
+        '''Função usada para que o modelo possa fazer predições com base na sua arquitetura
+        '''
         if self.threshold is None:
             raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
-        
+
         row_array = np.array([float(x) for x in row]).reshape(1, -1)
 
         reconstruction = self.autoencoder.predict(row_array)
@@ -93,6 +105,8 @@ class AutoencoderFraudDetector:
 
     # ----------------- Salvar e Carregar modelo -----------------
     def save(self, filename="autoencoder.keras"):
+        '''Função usada para persistir o modelo
+        '''
         if self.autoencoder is None:
             raise RuntimeError("Nenhum modelo treinado para salvar.")
 
@@ -114,6 +128,8 @@ class AutoencoderFraudDetector:
 
 
     def load(self, filename="autoencoder.keras"):
+        '''Função usada para carregar um modelo persistido
+        '''
         model_path = os.path.join(os.path.dirname(__file__), "saved", filename)
 
         if not os.path.exists(model_path):
