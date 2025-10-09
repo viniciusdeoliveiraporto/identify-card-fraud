@@ -1,6 +1,8 @@
-# Identificação de Fraudes em Cartões de Crédito
+# 💳 Inteligência Artificial para Detecção de Fraudes em Cartões de Crédito
 
-Este projeto é um **protótipo inicial** de um sistema de detecção de anomalias/fraudes em transações de cartão de crédito. A ideia é utilizar **redes neurais autoencoders** para identificar comportamentos fora do padrão em transações financeiras.
+Este desafio, proposto pelo Kaggle, disponibiliza um dataset com 284.807 transações, sendo 492 fraudes (0,172%), tornando o problema extremamente desbalanceado, assim como na vida real.
+
+🧠 Para resolver, desenvolvemos uma Rede Neural Autoencoder, utilizando Python e TensorFlow. Ela foi treinado apenas com transações legítimas, seguindo a arquitetura 32-14-7-7-32, inspirada no artigo do Dr. Mohammed Abdulhameed Al-Shabi.
 
 ---
 ## Execução
@@ -35,8 +37,3 @@ OU
 ```bash
 python -m src.tests.test_fraude
 ```
-
----
-## Observações
-- O projeto ainda está em fase inicial (protótipo).
-- Futuramente serão adicionadas melhorias nos autocodificadores.

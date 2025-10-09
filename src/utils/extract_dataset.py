@@ -1,8 +1,10 @@
-'''Módulo para extração de dados do dataset
+'''
+Módulo para extração de dados do dataset
 '''
 import os
 import json
-from kaggle.api.kaggle_api_extended import KaggleApi # type: ignore
+from kaggle.api.kaggle_api_extended import KaggleApi  # type: ignore
+
 
 def load_environment():
     '''Função para carregar o ambiente necessário
@@ -17,11 +19,13 @@ def load_environment():
         print("Arquivo kaggle.json não encontrado em 'utils/'. Verifique o caminho.")
         raise
     except json.JSONDecodeError:
-        print("Erro ao ler kaggle.json. Verifique se o arquivo está em formato JSON válido.")
+        print(
+            "Erro ao ler kaggle.json. Verifique se o arquivo está em formato JSON válido.")
         raise
     except KeyError as e:
         print(f"Chave faltando no kaggle.json: {e}")
         raise
+
 
 def load_dataset():
     '''Função para carregar o dataset
@@ -31,6 +35,7 @@ def load_dataset():
 
     dataset = "mlg-ulb/creditcardfraud"
     api.dataset_download_files(dataset, path="data/", unzip=True)
+
 
 if __name__ == "__main__":
     load_environment()

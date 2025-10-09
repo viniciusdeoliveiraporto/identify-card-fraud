@@ -2,7 +2,8 @@
 '''
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from src.utils.dataset_utils import *
+from src.utils.dataset_utils import load_dataset, load_dataset_test
+
 
 def split_train_test():
     '''Essa função divide os dados em 20% para teste e 80% para treino
@@ -13,7 +14,8 @@ def split_train_test():
     df_normal = df[df['Class'] == 0]
     df_fraud = df[df['Class'] == 1]
 
-    df_train, df_val = train_test_split(df_normal, test_size=0.2, random_state=42)
+    df_train, df_val = train_test_split(
+        df_normal, test_size=0.2, random_state=42)
 
     df_test = pd.concat([df_val, df_fraud])
 
@@ -24,6 +26,7 @@ def split_train_test():
 
     return ds_train, ds_val, ds_test, labels_test
 
+
 def split_train_test_sample():
     '''Essa função divide os dados em 20% para teste e 80% para treino
     '''
@@ -32,7 +35,8 @@ def split_train_test_sample():
 
     df_normal = df[df['Class'] == 0]
     df_fraud = df[df['Class'] == 1]
-    df_train, df_val = train_test_split(df_normal, test_size=0.2, random_state=42)
+    df_train, df_val = train_test_split(
+        df_normal, test_size=0.2, random_state=42)
     df_test = pd.concat([df_val, df_fraud])
 
     ds_train = df_train.drop(columns=['Class']).values

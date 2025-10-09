@@ -1,25 +1,28 @@
-'''Esse módulo encapsula a arquitetura do modelo
-'''
+"""
+Esse módulo encapsula a arquitetura e o funcionamento do modelo de detecção de fraudes.
+"""
+
 import os
 import json
-import tensorflow
 import numpy as np
+import tensorflow
+from tensorflow.keras.models import Model  # type: ignore
+from tensorflow.keras.layers import Dropout, Input, Dense  # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping  # type: ignore
+from sklearn.metrics import classification_report, confusion_matrix
+from src.data.split_dataset import split_train_test
 
 # Silencia avisos do TensorFlow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-from src.data.split_dataset import split_train_test
-from tensorflow.keras.models import Model # type: ignore
-from tensorflow.keras.layers import Dropout, Input, Dense # type: ignore
-from tensorflow.keras.callbacks import EarlyStopping # type: ignore
-from sklearn.metrics import classification_report, confusion_matrix
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 class AutoencoderFraudDetector:
-    '''Essa classe abstrai e encapsula todas as funções necessárias para o modelo
-    '''
+    """
+    Classe que abstrai e encapsula todas as funções necessárias
+    para o modelo de detecção de fraudes usando Autoencoder.
+    """
+
     def __init__(self):
-        '''Função para a instanciação do modelo
-        '''
+        """Inicializa e instancia a arquitetura do modelo."""
         self.ds_train, self.ds_val, self.ds_test, self.labels_test = split_train_test()
         self.input_dim = self.ds_train.shape[1]
         self.threshold = None
@@ -49,37 +52,36 @@ class AutoencoderFraudDetector:
         self.autoencoder = Model(inputs=input_layer, outputs=output_layer)
         self.autoencoder.compile(optimizer="adam", loss="mse")
 
-    # ----------------- Treinar modelo, Avaliar e Adivinhar transações -----------------
+    # ------------------------------------------------------------------
+    # Treinar modelo, Avaliar e Fazer previsões
+    # ------------------------------------------------------------------
     def train(self, epochs=10, batch_size=128, threshold_percentile=96):
-        '''Função para o treinamento do modelo sobre os dados
-        '''
+        """Treina o modelo sobre o conjunto de dados."""
         early_stop = EarlyStopping(
             monitor="val_loss",
             patience=3,
             min_delta=1e-4,
-            restore_best_weights=True
+            restore_best_weights=True,
         )
 
         history = self.autoencoder.fit(
-            self.ds_train, self.ds_train,
+            self.ds_train,
+            self.ds_train,
             epochs=epochs,
             batch_size=batch_size,
-            validation_data =(self.ds_val, self.ds_val),
+            validation_data=(self.ds_val, self.ds_val),
             shuffle=True,
-            callbacks=[early_stop]
+            callbacks=[early_stop],
         )
 
-        #if self.threshold is None:
         reconstructions_val = self.autoencoder.predict(self.ds_val)
         mse_val = np.mean(np.power(self.ds_val - reconstructions_val, 2), axis=1)
         self.threshold = np.percentile(mse_val, threshold_percentile)
-        #print(f"\nThreshold fixo calculado: {self.threshold:.6f}\n")
 
         return history
 
     def evaluate(self):
-        '''Função para avaliar o modelo sobre o conjunto de dados de teste
-        '''
+        """Avalia o modelo sobre o conjunto de dados de teste."""
         if self.threshold is None:
             raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
 
@@ -91,56 +93,48 @@ class AutoencoderFraudDetector:
         print(classification_report(self.labels_test, y_pred))
 
     def predict(self, row):
-        '''Função usada para que o modelo possa fazer predições com base na sua arquitetura
-        '''
+        """Realiza a predição de uma única transação."""
         if self.threshold is None:
             raise RuntimeError("Threshold não definido. Treine o modelo antes de avaliar.")
 
         row_array = np.array([float(x) for x in row]).reshape(1, -1)
-
         reconstruction = self.autoencoder.predict(row_array)
         mse_row = np.mean(np.power(row_array - reconstruction, 2))
 
         return int(mse_row > self.threshold)
 
-    # ----------------- Salvar e Carregar modelo -----------------
+    # ------------------------------------------------------------------
+    # Persistência do modelo
+    # ------------------------------------------------------------------
     def save(self, filename="autoencoder.keras"):
-        '''Função usada para persistir o modelo
-        '''
+        """Salva o modelo e seus metadados."""
         if self.autoencoder is None:
             raise RuntimeError("Nenhum modelo treinado para salvar.")
 
         save_dir = os.path.join(os.path.dirname(__file__), "saved")
         os.makedirs(save_dir, exist_ok=True)
 
-        # Salva o modelo keras
         model_path = os.path.join(save_dir, filename)
         self.autoencoder.save(model_path)
 
-        # Salva os metadados extras
-        metadata = {
-            "threshold": self.threshold
-        }
-        with open(os.path.join(save_dir, "metadata.json"), "w", encoding='utf-8') as f:
+        metadata = {"threshold": self.threshold}
+        with open(os.path.join(save_dir, "metadata.json"), "w", encoding="utf-8") as f:
             json.dump(metadata, f)
 
         print(f"Modelo e metadados salvos em: {save_dir}")
 
-
     def load(self, filename="autoencoder.keras"):
-        '''Função usada para carregar um modelo persistido
-        '''
+        """Carrega o modelo salvo e seus metadados."""
         model_path = os.path.join(os.path.dirname(__file__), "saved", filename)
 
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Arquivo {model_path} não encontrado")
+            raise FileNotFoundError(f"Arquivo {model_path} não encontrado.")
 
         self.autoencoder = tensorflow.keras.models.load_model(model_path)
 
-        # Carrega os metadados extras
         metadata_path = os.path.join(os.path.dirname(model_path), "metadata.json")
         if os.path.exists(metadata_path):
-            with open(metadata_path, "r", encoding='utf-8') as f:
+            with open(metadata_path, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
                 self.threshold = metadata.get("threshold", None)
 

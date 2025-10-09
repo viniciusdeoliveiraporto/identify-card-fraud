@@ -4,12 +4,14 @@ import os
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
+
 def load_dataset():
     '''Função para carregar o dataset a partir do csv
     '''
     print("Carregando csv...")
     base_path = os.path.dirname(__file__)
-    data_folder = os.path.join(base_path, "../data")  # ../data porque estamos em utils
+    # ../data porque estamos em utils
+    data_folder = os.path.join(base_path, "../data")
 
     # Caminhos dos arquivos
 
@@ -27,7 +29,8 @@ def load_dataset():
             df = pd.read_csv(sample_database_path)
             print("sample.csv carregado com sucesso!")
         except FileNotFoundError as exc:
-            raise FileNotFoundError("CSV não encontrado! Verifique o caminho para os .csv") from exc
+            raise FileNotFoundError(
+                "CSV não encontrado! Verifique o caminho para os .csv") from exc
 
     # Remover a coluna Time e normalizar Amount
     # scaler_amount = MinMaxScaler()
@@ -42,12 +45,14 @@ def load_dataset():
 
     return df
 
+
 def load_dataset_test():
     '''Função para carregar o dataset de teste
     '''
     print("Carregando csv...")
     base_path = os.path.dirname(__file__)
-    data_folder = os.path.join(base_path, "../data")  # ../data porque estamos em utils
+    # ../data porque estamos em utils
+    data_folder = os.path.join(base_path, "../data")
 
     # Caminhos dos arquivos
     sample_database_path = os.path.join(data_folder, "sample.csv")
@@ -71,6 +76,7 @@ def load_dataset_test():
 
     return df
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     load_dataset()
     print("Normalização dos dados realizada com sucesso!")
