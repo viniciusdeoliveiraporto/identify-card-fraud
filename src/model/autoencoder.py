@@ -121,7 +121,7 @@ class AutoencoderFraudDetector:
         metadata = {
             "threshold": self.threshold
         }
-        with open(os.path.join(save_dir, "metadata.json"), "w") as f:
+        with open(os.path.join(save_dir, "metadata.json"), "w", encoding='utf-8') as f:
             json.dump(metadata, f)
 
         print(f"Modelo e metadados salvos em: {save_dir}")
@@ -140,7 +140,7 @@ class AutoencoderFraudDetector:
         # Carrega os metadados extras
         metadata_path = os.path.join(os.path.dirname(model_path), "metadata.json")
         if os.path.exists(metadata_path):
-            with open(metadata_path, "r") as f:
+            with open(metadata_path, "r", encoding='utf-8') as f:
                 metadata = json.load(f)
                 self.threshold = metadata.get("threshold", None)
 
