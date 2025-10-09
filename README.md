@@ -1,6 +1,6 @@
 # 💳 Detecção de Fraudes em Cartões de Crédito
 
-Este desafio, proposto pelo ![Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud/data), disponibiliza um dataset com 284.807 transações, sendo 492 fraudes (0,172%), tornando o problema extremamente desbalanceado, assim como na vida real.
+Este desafio, proposto pelo [Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud/data), disponibiliza um dataset com 284.807 transações, sendo 492 fraudes (0,172%), tornando o problema extremamente desbalanceado, assim como na vida real.
 
 ## Inteligência Artificial
 
