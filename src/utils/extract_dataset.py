@@ -1,10 +1,14 @@
+'''Módulo para extração de dados do dataset
+'''
 import os
 import json
 from kaggle.api.kaggle_api_extended import KaggleApi # type: ignore
 
 def load_environment():
+    '''Função para carregar o ambiente necessário
+    '''
     try:
-        with open("utils/kaggle.json", "r") as f:
+        with open("utils/kaggle.json", "r", encoding='utf-8') as f:
             creds = json.load(f)
 
         os.environ["KAGGLE_USERNAME"] = creds["username"]
@@ -20,6 +24,8 @@ def load_environment():
         raise
 
 def load_dataset():
+    '''Função para carregar o dataset
+    '''
     api = KaggleApi()
     api.authenticate()
 
