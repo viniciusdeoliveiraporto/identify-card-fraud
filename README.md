@@ -2,7 +2,7 @@
 
 Este desafio, proposto pelo ![Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud/data), disponibiliza um dataset com 284.807 transações, sendo 492 fraudes (0,172%), tornando o problema extremamente desbalanceado, assim como na vida real.
 
-# Inteligência Artificial
+## Inteligência Artificial
 
 🧠 Para resolver, desenvolvemos uma Rede Neural densa não supervisionada, mais especificamente um Autoencoder assimétrico, utilizando Python e TensorFlow. Ele foi treinado apenas com transações legítimas, seguindo a arquitetura 32-14-7-7-32.
 
@@ -48,5 +48,7 @@ OU
 python -m src.tests.test_fraude
 ```
 
-Gráfico de evolução no treinamento por época
+---
+
+## Gráfico de evolução no treinamento por época
 ![grafico](https://github.com/user-attachments/assets/f6b04cb9-4319-47ac-9a57-ac6b22d3d9d5)
